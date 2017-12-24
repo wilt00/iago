@@ -1,0 +1,42 @@
+{
+    "deploy": {
+        "packages": [
+            {
+                "name": "Version 0.1",
+                "files": [
+                    "/*.json",
+                    "/src/*",
+                    "/dist/*",
+                    "/script/*"
+                ],
+                "deployOnSave": true
+            }
+        ],
+        "targets": [
+            {
+                "type": "sftp",
+                "name": "acm",
+                // "dir": "public_html/iago",
+                "dir": "public_html",
+                "mappings": [
+                    // {
+                    //     "source": "/dist",
+                    //     "target": "/"
+                    // },
+                    {
+                        "source": "/script",
+                        "target": "/cgi-bin"
+                    },
+                    {
+                        "source": "/",
+                        "target": "/iago"
+                    }
+                ],
+                "host": "acm.cs.uic.edu",
+                "port": 22,
+                "user": "wtoher",
+                "privateKey": "C:/Users/toher/AppData/Local/lxss/home/wt/.ssh/id_rsa"
+            }
+        ]
+    }
+}

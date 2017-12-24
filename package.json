@@ -1,0 +1,25 @@
+{
+  "name": "iago",
+  "version": "0.1.0",
+  "description": "An Othello ranking dashboard for the ACM",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Will Toher",
+  "license": "MIT",
+  "dependencies": {
+    "bluebird": "^3.5.1",
+    "elo-rank": "^1.0.3",
+    "sequelize": "^4.28.0",
+    "vue": "^2.5.10",
+    "vue-resource": "^1.3.4"
+  },
+  "devDependencies": {
+    "eslint": "^4.13.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-vue": "^4.0.0-beta.2",
+    "webpack": "^3.10.0"
+  }
+}

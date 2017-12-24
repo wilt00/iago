@@ -1,0 +1,12 @@
+.leaderboard-item {
+    margin-right: 10px;
+}
+
+.leaderboard-tg-enter-active .leaderboard-tg-leave-active {
+    transition: all 1s;
+}
+
+.leaderboard-tg-enter .leaderboard-tg-leave-to {
+    opacity: 0;
+    transform: translateX(30px);
+}

@@ -4,7 +4,6 @@
             {
                 "name": "Version 0.1",
                 "files": [
-                    "/*.json",
                     "/src/*",
                     "/dist/*",
                     "/script/*"
@@ -19,16 +18,16 @@
                 // "dir": "public_html/iago",
                 "dir": "public_html",
                 "mappings": [
-                    // {
-                    //     "source": "/dist",
-                    //     "target": "/"
-                    // },
                     {
                         "source": "/script",
                         "target": "/cgi-bin"
                     },
                     {
-                        "source": "/",
+                        "source": "/dist",
+                        "target": "/iago"
+                    },
+                    {
+                        "source": "/src",   // TEMP
                         "target": "/iago"
                     }
                 ],

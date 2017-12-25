@@ -44,7 +44,7 @@ import datetime
 # GET
 # - List table of all users and ratings - Priority 1
 # - List historical rating info of one or more users
-# - List stats of one or more players: win/loss ratio, w/l as color, 
+# - List stats of one or more players: win/loss ratio, w/l as color,
 #     average margin of victory/defeat,
 # POST
 # - Update user rating
@@ -63,21 +63,23 @@ import datetime
 # post=game, white=id, black=id, result=white|black|draw, score=#
 
 
-k_val = 32
-starting_rating = 1000
+K_VAL = 32
+STARTING_RATING = 1000
 
-db_name = "iago.db"
+DB_NAME = "iago.db"
 
 def parse_args(argdict, input_string):
-    if input_string == "":              # TODO: Make sure this is safe
+    """Convert url-encoded string to a dictionary."""
+    if input_string == "":
         return
     args = input_string.split('&')
-    for i in range(len(args)):
-        if len(args[i].split('=')) > 0:
-            key,val = args[i].split('=')
+    for _, arg in enumerate(args):
+        if arg.split('='):
+            key, val = arg.split('=')
             argdict[key] = val
 
 def user_dict(cursor, row):
+    """Parse sqlite results as dictionary."""
     d = {}
     for idx, col in enumerate(cursor.description):
         d[col[0]] = row[idx]
@@ -85,7 +87,7 @@ def user_dict(cursor, row):
 
 def do_get(GET):
     if 'get' in GET:
-        conn = sqlite3.connect(db_name)
+        conn = sqlite3.connect(DB_NAME)
         conn.row_factory = user_dict
         cur = conn.cursor()
 
@@ -100,12 +102,42 @@ def do_get(GET):
     else:
         return {'error': 'no \'get\' key passed in query string'}
 
+def add_user(POST):
+    if 'name' not in POST:
+        return {'error': 'name not specified for new user'}
+
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = user_dict
+    cur = conn.cursor()
+
+    # Test for duplicate name
+    cur.execute('SELECT id FROM users WHERE name=?', \
+            (POST['name'],))
+    if cur.fetchone() != None:
+        return {'error': \
+                'user with name {0} already exists in database' \
+                    .format(POST['name'])}
+
+    # Form encoding mangles spaces
+    name = POST['name'].replace('+', ' ')
+
+    if 'rating' in POST:
+        rating = POST['rating']
+    else:
+        rating = STARTING_RATING
+
+    cur.execute( \
+            'insert into users values(NULL, ?, ?, ?, 1)', \
+            (name, rating, datetime.datetime.now()))
+    conn.commit()
+
+    newuser = cur.execute( \
+            'SELECT * FROM users WHERE id=?', (cur.lastrowid,))
+    return {'status': 'success',
+            'user': newuser.fetchone()}
+
 def do_post(POST):
     if 'post' in POST:
-        conn = sqlite3.connect(db_name)
-        conn.row_factory = user_dict
-        cur = conn.cursor()
-
         if POST['post'] == 'game':
             if ('white' not in POST) or \
                     ('black' not in POST) or \
@@ -113,34 +145,7 @@ def do_post(POST):
                 return {'error': 'incomplete game; unable to save'}
 
         elif POST['post'] == 'user':
-            if 'name' not in POST:
-                return {'error': 'name not specified for new user'}
-
-            # Test for duplicate name
-            cur.execute('SELECT id FROM users WHERE name=?', \
-                    (POST['name'],))
-            if cur.fetchone() != None:
-                return {'error': \
-                        'user with name {0} already exists in database' \
-                            .format(POST['name']) }
-
-            # Form encoding mangles spaces
-            name = POST['name'].replace('+', ' ')
-
-            if 'rating' in POST:
-                rating = POST['rating']
-            else:
-                rating = starting_rating
-
-            cur.execute( \
-                    'insert into users values(NULL, ?, ?, ?, 1)', \
-                    (name, rating, datetime.datetime.now()))
-            conn.commit()
-
-            newuser = cur.execute( \
-                    'SELECT * FROM users WHERE id=?', (cur.lastrowid,));
-            return {'status': 'success',
-                    'user': newuser.fetchone()}
+            return add_user(POST)
 
 # https://stackoverflow.com/questions/464040/how-are-post-and-get-variables-handled-in-python#464977 
 
@@ -188,7 +193,7 @@ def main():
 
     if 'error' in payload:
         print("Status: 400 Bad Request\n")
-        print(body) 
+        print(body)
 
     else:
         print("Status: 200 OK")
@@ -196,4 +201,3 @@ def main():
         print(body)
 
 main()
-

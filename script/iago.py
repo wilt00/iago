@@ -73,7 +73,7 @@ import datetime
 # post=user, name="name"
 # [rating active]
 #
-# post=game, white=id, black=id, result=white|black|draw, whitescore=#, blackscore=#
+# post=game, whiteid=id, blackid=id, result=white|black|draw, whitescore=#, blackscore=#
 
 
 K_VAL = 32
@@ -111,6 +111,10 @@ def do_get(GET):
             #     select = tuple(GET['select'].split(','))
 
             cur.execute('SELECT * FROM users')
+            return cur.fetchall()
+
+        elif GET['get'] == 'games':
+            cur.execute('SELECT * FROM games')
             return cur.fetchall()
 
         # TODO: implement games and rating history
@@ -154,12 +158,12 @@ def add_user(POST):
             'user': newuser.fetchone()}
 
 def add_game(POST):
-    if ('white' not in POST) or \
-        ('black' not in POST) or \
+    if ('whiteid' not in POST) or \
+        ('blackid' not in POST) or \
         ('result' not in POST):
         return {'error': 'incomplete game, unable to save'}
 
-    if POST['white'] == POST['black']:
+    if POST['whiteid'] == POST['blackid']:
         return {'error': 'players must have different ids'}
 
     result = 0
@@ -170,21 +174,21 @@ def add_game(POST):
     elif POST['result'] == 'draw':
         result = 3
     else:
-        return {'error' 'invalid result \'{0}\''.format(POST['result'])}
+        return {'error': 'invalid result value \'{0}\''.format(POST['result'])}
 
     conn = sqlite3.connect(DB_NAME)
     conn.row_factory = user_dict
     cur = conn.cursor()
 
-    cur.execute('SELECT * FROM users WHERE userid=?', (POST['black'],))
+    cur.execute('SELECT * FROM users WHERE userid=?', (POST['blackid'],))
     blackplr = cur.fetchone()
     if blackplr is None:
-        return {'error': 'Black player with id \'{0}\' does not exist'.format(POST['black'])}
+        return {'error': 'Black player with id \'{0}\' does not exist'.format(POST['blackid'])}
 
-    cur.execute('SELECT * FROM users WHERE userid=?', (POST['white'],))
+    cur.execute('SELECT * FROM users WHERE userid=?', (POST['whiteid'],))
     whiteplr = cur.fetchone()
     if whiteplr is None:
-        return {'error': 'White player with id \'{0}\' does not exist'.format(POST['white'])}
+        return {'error': 'White player with id \'{0}\' does not exist'.format(POST['whiteid'])}
 
     blackscore = -1
     if 'blackscore' in POST:
@@ -195,9 +199,12 @@ def add_game(POST):
         whitescore = int(POST['whitescore'])
 
     cur.execute('INSERT INTO games VALUES (NULL,?,?,?,?,?,?)', (
-        POST['black'], POST['white'], result,
+        POST['blackid'], POST['whiteid'], result,
         blackscore, whitescore, datetime.datetime.now()
     ))
+    conn.commit()
+
+    return {}
 
 
 def do_post(POST):

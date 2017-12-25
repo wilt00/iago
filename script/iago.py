@@ -99,11 +99,12 @@ def do_get(GET):
 
             cur.execute('SELECT * FROM users')
             return cur.fetchall()
+
         # TODO: implement games and rating history
-        else:
-            return {'error': 'cannot fetch resource type \'{0}\''.format(GET['get'])}
-    else:
-        return {'error': 'no \'get\' key passed in query string'}
+
+        return {'error': 'cannot fetch resource type \'{0}\''.format(GET['get'])}
+
+    return {'error': 'no \'get\' key passed in query string'}
 
 def add_user(POST):
     if 'name' not in POST:
@@ -149,6 +150,10 @@ def do_post(POST):
 
         elif POST['post'] == 'user':
             return add_user(POST)
+
+        return {'error': 'cannot post resource type \'{0}\''.format(POST['post'])}
+
+    return {'error': 'no \'post\' key passed in form submission'}
 
 # https://stackoverflow.com/questions/464040/how-are-post-and-get-variables-handled-in-python#464977 
 

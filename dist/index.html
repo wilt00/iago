@@ -24,11 +24,20 @@
             <span>User name: </span>
             <input v-model.trim="name" placeholder="User name">
             <input v-model.number="rating" type="number" placeholder="1000">
-            <button v-on:click="submit">Submit</button>
+            <button v-on:click="submitUser">Submit</button>
         </div>
         <div id="gameform">
+            <span>Black player: </span>
+            <select v-model="blackid">
+                <option disabled value="">Select Black Player:</option>
+                <option
+                    v-for="user in users"
+                    v-bind:value="user.userid">
+                    {{user.username}}
+                </option>
+            </select>
             <span>White player: </span>
-            <select v-model="whiteplayer">
+            <select v-model="whiteid">
                 <option disabled value="">Select White Player:</option>
                 <option
                     v-for="user in users"
@@ -36,15 +45,18 @@
                     {{user.username}}
                 </option>
             </select>
-            <span>Black player: </span>
-            <select v-model="blackplayer">
-                <option
-                    v-for="user in users"
-                    v-bind:value="user.userid">
-                    {{user.username}}
-                </option>
-            </select>
-            <input type="file" accept="image/*">
+            <input type="radio" id="black" value="black" v-model="result">
+            <label for="black">Black</label>
+            <input type="radio" id="white" value="white" v-model="result">
+            <label for="white">White</label>
+            <input type="radio" id="draw" value="draw" v-model="result">
+            <label for="draw">Draw</label>
+            <span>Black score: </span>
+            <input v-model.number="blackscore" type="number">
+            <span>White score: </span>
+            <input v-model.number="whitescore" type="number">
+            <button v-on:click="submitGame">Submit</button>
+            <!-- <input type="file" accept="image/*"> -->
         </div>
         <!-- <script src="https://cdn.jsdelivr.net/npm/vue"></script> -->
         <script src="https://vuejs.org/js/vue.js"></script>

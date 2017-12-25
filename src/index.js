@@ -11,9 +11,10 @@ const allusersurl = 'https://acm.cs.uic.edu/~wtoher/cgi-bin/iago.py?get=users&id
 const store = new Vuex.Store({
   state: {
     users: [],
+    games: [],
   },
   mutations: {
-    getData() {
+    getUsers() {
       const self = this;
       const req = new XMLHttpRequest();
       req.onreadystatechange = () => {
@@ -21,11 +22,6 @@ const store = new Vuex.Store({
           if (req.status === 200) {
             const j = JSON.parse(req.responseText);
             self.state.users = j.payload.sort((a, b) => b.rating - a.rating);
-            console.log('Users loaded');
-          } else if (req.status === 0) {
-            console.log('Turn off your script blocker, dummy');
-          } else {
-            console.log(req.body);
           }
         }
       };
@@ -33,6 +29,19 @@ const store = new Vuex.Store({
       // TODO: Figure out CORS
       // req.setRequestHeader('Access-Control-Allow-Origin', '*');
       req.send();
+    },
+    getGames() {
+      const self = this;
+      const req = new XMLHttpRequest();
+      req.onreadystatechange = () => {
+        if (req.readyState === XMLHttpRequest.DONE) {
+          if (req.status === 200) {
+            const j = JSON.parse(req.responseText);
+            self.state.games = j.payload;
+          }
+        }
+      };
+      req.open('GET', `${baseurl}?get=games`);
     },
   },
 });
@@ -46,8 +55,7 @@ const leaderboard = new Vue({
     users() { return store.state.users; },
   },
   mounted() {
-    console.log('Running mounted...');
-    store.commit('getData');
+    store.commit('getUsers');
   },
   methods: {
   },
@@ -56,13 +64,40 @@ const leaderboard = new Vue({
 const gameform = new Vue({
   el: '#gameform',
   data: {
-    whiteplayer: '',
-    blackplayer: '',
+    blackid: '',
+    whiteid: '',
+    result: '',
+    blackscore: '',
+    whitescore: '',
   },
   computed: {
     users() { return store.state.users; },
   },
-  methods: {},
+  methods: {
+    submitGame() {
+      if (this.blackid !== '' && this.whiteid !== '' && this.result !== '') {
+        this.$http.post(baseurl, {
+          post: 'game',
+          blackid: this.blackid,
+          whiteid: this.whiteid,
+          result: this.result,
+          blackscore: (this.blackscore === '') ? -1 : this.blackscore,
+          whitescore: (this.whitescore === '') ? -1 : this.whitescore,
+        }, {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          emulateJSON: true,
+        })
+          .then((res) => {
+            // console.log(res.status);
+            // console.log(res.statusText);
+            // console.log(res.body);
+            store.commit('getUsers');
+          });
+      }
+    },
+  },
 });
 
 const userform = new Vue({
@@ -72,12 +107,8 @@ const userform = new Vue({
     rating: 1000,
   },
   methods: {
-    submit() {
+    submitUser() {
       if (this.name !== '') {
-        /* const form = new FormData();
-        form.append('post', 'user');
-        form.append('name', this.name);
-        form.append('rating', this.rating); */
         this.$http.post(baseurl, {
           post: 'user',
           name: this.name,
@@ -92,7 +123,7 @@ const userform = new Vue({
             // console.log(res.status);
             // console.log(res.statusText);
             // console.log(res.body);
-            store.commit('getData');
+            store.commit('getUsers');
           });
       }
     },

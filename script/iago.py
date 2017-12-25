@@ -13,7 +13,7 @@ import datetime
 
 
 # Schema:
-# 
+#
 # users:
 #   id              int pk
 #   name            varchar(32)
@@ -21,13 +21,20 @@ import datetime
 #   created         datetime
 #   active          bool
 #
+# create table users (id integer primary key, name varchar(32),
+# rating int, created datetime, active boolean);
+#
 # games:
-#   id              int
+#   id              int pk
 #   black_id        int
 #   white_id        int
 #   result          enum (white, black, draw, incomplete)
-#   white_score
+#       0 - incomplete
+#       1 - black
+#       2 - white
+#       3 - draw
 #   black_score
+#   white_score
 #   timestamp       datetime
 #
 # rating_history:
@@ -37,6 +44,12 @@ import datetime
 #   timestamp       datetime
 #       DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now', 'localtime'))
 #   rating          int
+#
+# create table rating_history (
+#   timestamp DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now', 'localtime')),
+#   user_id int,
+#   rating int,
+#   FOREIGN KEY(user_id) REFERENCES users(id) );
 
 # API:
 #
@@ -60,7 +73,7 @@ import datetime
 # post=user, name="name"
 # [rating active]
 #
-# post=game, white=id, black=id, result=white|black|draw, score=#
+# post=game, white=id, black=id, result=white|black|draw, whitescore=#, blackscore=#
 
 
 K_VAL = 32
@@ -115,9 +128,9 @@ def add_user(POST):
     cur = conn.cursor()
 
     # Test for duplicate name
-    cur.execute('SELECT id FROM users WHERE name=?', \
+    cur.execute('SELECT userid FROM users WHERE username=?', \
             (POST['name'],))
-    if cur.fetchone() != None:
+    if cur.fetchone() is not None:
         return {'error': \
                 'user with name {0} already exists in database' \
                     .format(POST['name'])}
@@ -136,18 +149,62 @@ def add_user(POST):
     conn.commit()
 
     newuser = cur.execute( \
-            'SELECT * FROM users WHERE id=?', (cur.lastrowid,))
+            'SELECT * FROM users WHERE userid=?', (cur.lastrowid,))
     return {'status': 'success',
             'user': newuser.fetchone()}
 
+def add_game(POST):
+    if ('white' not in POST) or \
+        ('black' not in POST) or \
+        ('result' not in POST):
+        return {'error': 'incomplete game, unable to save'}
+
+    if POST['white'] == POST['black']:
+        return {'error': 'players must have different ids'}
+
+    result = 0
+    if POST['result'] == 'black':
+        result = 1
+    elif POST['result'] == 'white':
+        result = 2
+    elif POST['result'] == 'draw':
+        result = 3
+    else:
+        return {'error' 'invalid result \'{0}\''.format(POST['result'])}
+
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = user_dict
+    cur = conn.cursor()
+
+    cur.execute('SELECT * FROM users WHERE userid=?', (POST['black'],))
+    blackplr = cur.fetchone()
+    if blackplr is None:
+        return {'error': 'Black player with id \'{0}\' does not exist'.format(POST['black'])}
+
+    cur.execute('SELECT * FROM users WHERE userid=?', (POST['white'],))
+    whiteplr = cur.fetchone()
+    if whiteplr is None:
+        return {'error': 'White player with id \'{0}\' does not exist'.format(POST['white'])}
+
+    blackscore = -1
+    if 'blackscore' in POST:
+        blackscore = int(POST['blackscore'])
+
+    whitescore = -1
+    if 'whitescore' in POST:
+        whitescore = int(POST['whitescore'])
+
+    cur.execute('INSERT INTO games VALUES (NULL,?,?,?,?,?,?)', (
+        POST['black'], POST['white'], result,
+        blackscore, whitescore, datetime.datetime.now()
+    ))
+
+
 def do_post(POST):
+    """Handle logic for POST request."""
     if 'post' in POST:
         if POST['post'] == 'game':
-            if ('white' not in POST) or \
-                    ('black' not in POST) or \
-                    ('result' not in POST):
-                return {'error': 'incomplete game; unable to save'}
-
+            return add_game(POST)
         elif POST['post'] == 'user':
             return add_user(POST)
 
@@ -155,7 +212,7 @@ def do_post(POST):
 
     return {'error': 'no \'post\' key passed in form submission'}
 
-# https://stackoverflow.com/questions/464040/how-are-post-and-get-variables-handled-in-python#464977 
+# https://stackoverflow.com/questions/464040/how-are-post-and-get-variables-handled-in-python#464977
 
 def main():
     cgitb.enable(display=1, logdir='~/html_logs')

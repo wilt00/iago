@@ -14,7 +14,7 @@
                 <leaderboard-user 
                     v-for="user in users"
                     v-bind:user="user"
-                    v-bind:key="user.id"
+                    v-bind:key="user.userid"
                     class="leaderboard-item">
                 </leaderboard-user>
                 </transition-group>
@@ -30,20 +30,21 @@
             <span>White player: </span>
             <select v-model="whiteplayer">
                 <option disabled value="">Select White Player:</option>
-                <option 
+                <option
                     v-for="user in users"
-                    v-bind:value="user.id">
-                    {{user.name}}
+                    v-bind:value="user.userid">
+                    {{user.username}}
                 </option>
             </select>
             <span>Black player: </span>
             <select v-model="blackplayer">
                 <option
                     v-for="user in users"
-                    v-bind:value="user.id">
-                    {{user.name}}
+                    v-bind:value="user.userid">
+                    {{user.username}}
                 </option>
             </select>
+            <input type="file" accept="image/*">
         </div>
         <!-- <script src="https://cdn.jsdelivr.net/npm/vue"></script> -->
         <script src="https://vuejs.org/js/vue.js"></script>

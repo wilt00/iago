@@ -1,8 +1,9 @@
 // import { getDefaultSettings } from "http2";
 
 // const Vue = require('vue');
-// const Vuex = require('vuex')
-// Vue.use(Vuex)
+// const Vuex = require('vuex');
+
+// Vue.use(Vuex);
 
 const baseurl = 'https://acm.cs.uic.edu/~wtoher/cgi-bin/iago.py';
 const allusersurl = 'https://acm.cs.uic.edu/~wtoher/cgi-bin/iago.py?get=users&id=all&select=all&filter=all';
@@ -105,5 +106,5 @@ Vue.component('leaderboard-user', {
       required: true,
     },
   },
-  template: '<li>{{user.name}}: {{user.rating}}</li>',
+  template: '<li>{{user.username}}: {{user.rating}}</li>',
 });

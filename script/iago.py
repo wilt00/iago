@@ -99,6 +99,9 @@ def do_get(GET):
 
             cur.execute('SELECT * FROM users')
             return cur.fetchall()
+        # TODO: implement games and rating history
+        else:
+            return {'error': 'cannot fetch resource type \'{0}\''.format(GET['get'])}
     else:
         return {'error': 'no \'get\' key passed in query string'}
 

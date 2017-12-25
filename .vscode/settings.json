@@ -8,6 +8,9 @@
                     "/dist/*",
                     "/script/*"
                 ],
+                "exclude": [
+                    "*.db"
+                ],
                 "deployOnSave": true
             }
         ],

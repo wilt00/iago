@@ -46,6 +46,95 @@ const store = new Vuex.Store({
   },
 });
 
+const app = new Vue({
+  el: '#app',
+  data: {
+    message: 'New app object!',
+    newuser: {
+      name: '',
+      rating: 1000,
+    },
+    newgame: {
+      blackid: '',
+      whiteid: '',
+      result: '',
+      blackscore: '',
+      whitescore: '',
+    },
+  },
+  computed: {
+    users() { return store.state.users; },
+    games() { return store.state.games; },
+  },
+  mounted() {
+    store.commit('getUsers');
+    store.commit('getGames');
+  },
+  methods: {
+    clearGame() {
+      this.newgame = {
+        blackid: '',
+        whiteid: '',
+        result: '',
+        blackscore: '',
+        whitescore: '',
+      };
+    },
+    clearUser() {
+      this.newuser = {
+        name: '',
+        rating: 1000,
+      };
+    },
+    submitGame() {
+      if (this.newgame.blackid !== '' && this.newgame.whiteid !== '' && this.newgame.result !== '') {
+        this.$http.post(baseurl, {
+          post: 'game',
+          blackid: this.newgame.blackid,
+          whiteid: this.newgame.whiteid,
+          result: this.newgame.result,
+          blackscore: (this.newgame.blackscore === '') ? -1 : this.newgame.blackscore,
+          whitescore: (this.newgame.whitescore === '') ? -1 : this.newgame.whitescore,
+        }, {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          emulateJSON: true,
+        })
+          .then((res) => {
+            // console.log(res.status);
+            // console.log(res.statusText);
+            // console.log(res.body);
+            store.commit('getUsers');
+            this.clearGame();
+          });
+      }
+    },
+    submitUser() {
+      if (this.newuser.name !== '') {
+        this.$http.post(baseurl, {
+          post: 'user',
+          name: this.newuser.name,
+          rating: this.newuser.rating,
+        }, {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          emulateJSON: true,
+        })
+          .then((res) => {
+            // console.log(res.status);
+            // console.log(res.statusText);
+            // console.log(res.body);
+            store.commit('getUsers');
+            this.clearUser();
+          });
+      }
+    },
+  },
+});
+
+/*
 const leaderboard = new Vue({
   el: '#leaderboard',
   data: {
@@ -129,6 +218,7 @@ const userform = new Vue({
     },
   },
 });
+*/
 
 Vue.component('leaderboard-user', {
   props: {

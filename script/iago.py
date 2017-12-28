@@ -105,11 +105,6 @@ def do_get(GET):
         cur = conn.cursor()
 
         if GET['get'] == 'users':
-            # TODO: implement 'select' and 'filter'
-            # select = tuple('*')
-            # if ('select' in GET) and (GET['select'] != 'all'):
-            #     select = tuple(GET['select'].split(','))
-
             cur.execute('SELECT * FROM users')
             return cur.fetchall()
 
@@ -117,11 +112,20 @@ def do_get(GET):
             cur.execute('SELECT * FROM games')
             return cur.fetchall()
 
-        # TODO: implement games and rating history
+        elif GET['get'] == 'history':
+            return {'error': 'not yet implemented'}
 
         return {'error': 'cannot fetch resource type \'{0}\''.format(GET['get'])}
 
     return {'error': 'no \'get\' key passed in query string'}
+
+def update_rating(conn, cur, userid, rating):
+    cur.execute('INSERT INTO rating_history VALUES (?, ?, ?)', (
+        datetime.datetime.now(), userid, rating
+    ))
+    cur.execute('UPDATE users SET rating=? WHERE userid=?', (
+        rating, userid
+    ))
 
 def add_user(POST):
     if 'name' not in POST:
@@ -150,6 +154,9 @@ def add_user(POST):
     cur.execute( \
             'insert into users values(NULL, ?, ?, ?, 1)', \
             (name, rating, datetime.datetime.now()))
+
+    # update_rating(conn, cur, cur.lastrowid, rating)
+
     conn.commit()
 
     newuser = cur.execute( \
@@ -202,10 +209,10 @@ def add_game(POST):
         POST['blackid'], POST['whiteid'], result,
         blackscore, whitescore, datetime.datetime.now()
     ))
+
     conn.commit()
 
     return {}
-
 
 def do_post(POST):
     """Handle logic for POST request."""
@@ -245,7 +252,7 @@ def main():
     #     print(traceback.print_exc())
     #     return
 
-    payload = None
+    payload = {}
 
     if GET != {}:
         payload = do_get(GET)

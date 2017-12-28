@@ -22,7 +22,22 @@
             </ol>
         </div>
         <div id="gameslist">
-            
+            <table>
+                <thead>
+                    <tr>
+                        <td>Black Player</td>
+                        <td>White Player</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="game in games">
+                        <td :class="{winner: game.blackWin, loser: game.whiteWin, draw:game.draw}">
+                            {{getUser(game.blackid).username}}</td>
+                        <td :class="{winner: game.whiteWin, loser: game.blackWin, draw:game.draw}">
+                            {{getUser(game.whiteid).username}}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
         <div id="userform">
             <span>User name: </span>

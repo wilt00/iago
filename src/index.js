@@ -37,11 +37,18 @@ const store = new Vuex.Store({
         if (req.readyState === XMLHttpRequest.DONE) {
           if (req.status === 200) {
             const j = JSON.parse(req.responseText);
-            self.state.games = j.payload;
+            self.state.games = j.payload.map((val) => {
+              const newval = val;
+              newval.blackWin = (val.result === 1);
+              newval.whiteWin = (val.result === 2);
+              newval.draw = (!val.blackWin) && (!val.whiteWin);
+              return newval;
+            });
           }
         }
       };
       req.open('GET', `${baseurl}?get=games`);
+      req.send();
     },
   },
 });
@@ -131,94 +138,18 @@ const app = new Vue({
           });
       }
     },
-  },
-});
-
-/*
-const leaderboard = new Vue({
-  el: '#leaderboard',
-  data: {
-    message: 'Test!',
-  },
-  computed: {
-    users() { return store.state.users; },
-  },
-  mounted() {
-    store.commit('getUsers');
-  },
-  methods: {
-  },
-});
-
-const gameform = new Vue({
-  el: '#gameform',
-  data: {
-    blackid: '',
-    whiteid: '',
-    result: '',
-    blackscore: '',
-    whitescore: '',
-  },
-  computed: {
-    users() { return store.state.users; },
-  },
-  methods: {
-    submitGame() {
-      if (this.blackid !== '' && this.whiteid !== '' && this.result !== '') {
-        this.$http.post(baseurl, {
-          post: 'game',
-          blackid: this.blackid,
-          whiteid: this.whiteid,
-          result: this.result,
-          blackscore: (this.blackscore === '') ? -1 : this.blackscore,
-          whitescore: (this.whitescore === '') ? -1 : this.whitescore,
-        }, {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          emulateJSON: true,
-        })
-          .then((res) => {
-            // console.log(res.status);
-            // console.log(res.statusText);
-            // console.log(res.body);
-            store.commit('getUsers');
-          });
+    getUser(id) {
+      const user = this.users.find(elem => elem.userid === id);
+      if (user === undefined) {
+        return {
+          name: 'Undefined',
+          rating: '0',
+        };
       }
+      return user;
     },
   },
 });
-
-const userform = new Vue({
-  el: '#userform',
-  data: {
-    name: '',
-    rating: 1000,
-  },
-  methods: {
-    submitUser() {
-      if (this.name !== '') {
-        this.$http.post(baseurl, {
-          post: 'user',
-          name: this.name,
-          rating: this.rating,
-        }, {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          emulateJSON: true,
-        })
-          .then((res) => {
-            // console.log(res.status);
-            // console.log(res.statusText);
-            // console.log(res.body);
-            store.commit('getUsers');
-          });
-      }
-    },
-  },
-});
-*/
 
 Vue.component('leaderboard-user', {
   props: {
@@ -228,4 +159,32 @@ Vue.component('leaderboard-user', {
     },
   },
   template: '<li>{{user.username}}: {{user.rating}}</li>',
+});
+
+Vue.component('game-row', {
+  props: {
+    game: {
+      type: Object,
+      required: true,
+    },
+  },
+  computed: {
+    blackuser() {
+      return store.state.users.find(elem => elem.userid === this.game.blackid);
+    },
+    whiteuser() {
+      return store.state.users.find(elem => elem.userid === this.game.whiteid);
+    },
+    result() {
+      switch (this.game.result) {
+        case 1: return 'Black';
+        case 2: return 'White';
+        case 3: return 'Draw';
+        default: return 'Indeterminate';
+      }
+    },
+  },
+  template: `
+      <td>{{blackuser.username}}</td>
+      <td>{{whiteuser.username}}</td>`,
 });

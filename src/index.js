@@ -112,7 +112,7 @@ const app = new Vue({
             // console.log(res.status);
             // console.log(res.statusText);
             // console.log(res.body);
-            store.commit('getUsers');
+            store.commit('getGames');
             this.clearGame();
           });
       }
